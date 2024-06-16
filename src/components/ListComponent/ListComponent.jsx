@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import PropTypes from 'prop-types'
 
 function ListComponent({
@@ -13,6 +13,20 @@ function ListComponent({
   const [done, setDone] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditedText] = useState(label)
+  const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [timerValue, setTimerValue] = useState(0)
+
+  useEffect(() => {
+    let interval = null
+    if (isTimerRunning) {
+      interval = setInterval(() => {
+        setTimerValue((prevValue) => prevValue + 1)
+      }, 1000)
+    } else {
+      clearInterval(interval)
+    }
+    return () => clearInterval(interval)
+  }, [isTimerRunning])
 
   function onLabelClick() {
     const newDoneState = !done
@@ -43,6 +57,17 @@ function ListComponent({
       }
     }
   }
+
+  function handlePlayClick() {
+    setIsTimerRunning(true)
+  }
+
+  function handlePauseClick() {
+    setIsTimerRunning(false)
+  }
+  const minutes = Math.floor(timerValue / 60)
+  const seconds = timerValue % 60
+
   return (
     <li
       className={`completed ${className} ${isEditing ? 'editing' : ''}`}
@@ -63,6 +88,25 @@ function ListComponent({
             <input className="toggle" type="checkbox" onClick={onLabelClick} />
             <label htmlFor="inputId">
               <span className={className}>{label}</span>
+              <span className="description">
+                <label htmlFor="inputTime">
+                  <button
+                    type="button"
+                    className="icon icon-play"
+                    onClick={handlePlayClick}
+                    aria-label="button_play"
+                  />
+                  <button
+                    type="button"
+                    className="icon icon-pause"
+                    onClick={handlePauseClick}
+                    aria-label="button_pause"
+                  />
+                  <span className="task-time">
+                    {minutes}:{seconds}
+                  </span>
+                </label>
+              </span>
               <span className="created">{time}</span>
             </label>
           </>
