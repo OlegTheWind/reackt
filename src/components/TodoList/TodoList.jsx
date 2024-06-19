@@ -2,13 +2,22 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import ListComponent from '../ListComponent/ListComponent'
 
-function TodoList({ todos, onDeleted, onEditItem, onToggleDescription }) {
+function TodoList({
+  todos,
+  min,
+  sec,
+  onDeleted,
+  onEditItem,
+  onToggleDescription,
+}) {
   const elements = todos.map((item) => (
     <ListComponent
       label={item.label}
       time={item.time}
       key={item.id}
       id={item.id}
+      min={min}
+      sec={sec}
       className={item.className}
       onDeleted={() => onDeleted(item.id)}
       onEditItem={(id, newText) => onEditItem(item.id, newText)}
@@ -31,5 +40,7 @@ TodoList.propTypes = {
   onEditItem: PropTypes.func.isRequired,
   onToggleDescription: PropTypes.func.isRequired,
   todos: PropTypes.element.isRequired,
+  min: PropTypes.number.isRequired,
+  sec: PropTypes.number.isRequired,
 }
 export default TodoList

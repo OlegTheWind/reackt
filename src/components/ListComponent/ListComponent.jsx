@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import PropTypes from 'prop-types'
 
 function ListComponent({
@@ -9,24 +9,53 @@ function ListComponent({
   onDeleted,
   onEditItem,
   onToggleDescription,
+  min,
+  sec,
+  currentTab,
 }) {
   const [done, setDone] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditedText] = useState(label)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
-  const [timerValue, setTimerValue] = useState(0)
+  const [timerValue, setTimerValue] = useState(() => {
+    // Восстанавливаем значение таймера из localStorage при переходе на вкладку "Completed"
+    if (currentTab === 'Completed') {
+      const savedTimer = localStorage.getItem(`timer-${id}`)
+      return savedTimer ? parseInt(savedTimer, 10) : min * 60 + sec
+    }
+    return min * 60 + sec
+  })
+
+  const startTimeRef = useRef(null)
+  const intervalRef = useRef(null)
 
   useEffect(() => {
-    let interval = null
+    // Сохраняем значение таймера в localStorage только при переходе на вкладку "Completed"
+    if (currentTab === 'Completed') {
+      localStorage.setItem(`timer-${id}`, timerValue.toString())
+    }
+
     if (isTimerRunning) {
-      interval = setInterval(() => {
-        setTimerValue((prevValue) => prevValue + 1)
+      startTimeRef.current = Date.now()
+      intervalRef.current = setInterval(() => {
+        const elapsedTime = Math.floor(
+          (Date.now() - startTimeRef.current) / 1000,
+        )
+        startTimeRef.current = Date.now()
+        setTimerValue((prevValue) => {
+          const newValue = prevValue - elapsedTime
+          if (newValue <= 0) {
+            clearInterval(intervalRef.current)
+            return 0
+          }
+          return newValue
+        })
       }, 1000)
     } else {
-      clearInterval(interval)
+      clearInterval(intervalRef.current)
     }
-    return () => clearInterval(interval)
-  }, [isTimerRunning])
+    return () => clearInterval(intervalRef.current)
+  }, [isTimerRunning, timerValue, id, currentTab])
 
   function onLabelClick() {
     const newDoneState = !done
@@ -65,8 +94,10 @@ function ListComponent({
   function handlePauseClick() {
     setIsTimerRunning(false)
   }
-  const minutes = Math.floor(timerValue / 60)
-  const seconds = timerValue % 60
+  function handleResetClick() {
+    setTimerValue(min * 60 + sec)
+    setIsTimerRunning(false)
+  }
 
   return (
     <li
@@ -75,14 +106,37 @@ function ListComponent({
     >
       <div className="view">
         {isEditing ? (
-          <input
-            className="edit"
-            type="text"
-            value={editText}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            onKeyDown={handleInputKeyDown}
-          />
+          <>
+            <input
+              className="edit"
+              type="text"
+              value={editText}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={handleInputKeyDown}
+            />
+            <input
+              className="new-todo-form__timer"
+              type="text"
+              placeholder="Min"
+              value={Math.floor(timerValue / 60)}
+              onChange={(event) => {
+                setTimerValue(event.target.value * 60 + (timerValue % 60))
+              }}
+            />
+            <input
+              className="new-todo-form__timer"
+              type="text"
+              placeholder="Sec"
+              value={Math.floor(timerValue % 60)}
+              onChange={(event) => {
+                setTimerValue(
+                  Math.floor(timerValue / 60) * 60 +
+                    parseInt(event.target.value, 10),
+                )
+              }}
+            />
+          </>
         ) : (
           <>
             <input className="toggle" type="checkbox" onClick={onLabelClick} />
@@ -102,8 +156,14 @@ function ListComponent({
                     onClick={handlePauseClick}
                     aria-label="button_pause"
                   />
+                  <button
+                    type="button"
+                    className="icon icon-reset"
+                    onClick={handleResetClick}
+                    aria-label="button_reset"
+                  />
                   <span className="task-time">
-                    {minutes}:{seconds}
+                    {Math.floor(timerValue / 60)}:{timerValue % 60}
                   </span>
                 </label>
               </span>
@@ -136,6 +196,9 @@ ListComponent.propTypes = {
   onEditItem: PropTypes.func.isRequired,
   className: PropTypes.string.isRequired,
   onToggleDescription: PropTypes.func.isRequired,
+  min: PropTypes.number.isRequired,
+  sec: PropTypes.number.isRequired,
+  currentTab: PropTypes.string.isRequired,
 }
 
 export default ListComponent

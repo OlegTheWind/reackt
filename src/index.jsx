@@ -12,7 +12,17 @@ export default class ToDoApp extends React.Component {
     this.state = {
       todoData: [],
       filter: 'all',
+      min: 0,
+      sec: 0,
     }
+  }
+
+  setMin = (min) => {
+    this.setState({ min: parseInt(min, 10) || 0 })
+  }
+
+  setSec = (sec) => {
+    this.setState({ sec: parseInt(sec, 10) || 0 })
   }
 
   setFilter = (filter) => {
@@ -29,7 +39,7 @@ export default class ToDoApp extends React.Component {
   }
 
   addItem = (text) => {
-    this.setState(({ todoData }) => {
+    this.setState(({ todoData, min, sec }) => {
       const addTodoData = [
         ...todoData,
         {
@@ -38,6 +48,8 @@ export default class ToDoApp extends React.Component {
             addSuffix: true,
           }),
           id: Math.random().toString(36).slice(2),
+          min,
+          sec,
         },
       ]
       return {
@@ -46,10 +58,12 @@ export default class ToDoApp extends React.Component {
     })
   }
 
-  onEditItem = (id, newText) => {
+  onEditItem = (id, newText, newMin, newSec) => {
     this.setState(({ todoData }) => {
       const updatedData = todoData.map((item) =>
-        item.id === id ? { ...item, label: newText } : item,
+        item.id === id
+          ? { ...item, label: newText, min: newMin, sec: newSec }
+          : item,
       )
       return {
         todoData: updatedData,
@@ -80,7 +94,7 @@ export default class ToDoApp extends React.Component {
   }
 
   render() {
-    const { todoData, filter } = this.state
+    const { todoData, filter, min, sec } = this.state
     const filteredData = todoData.filter((todo) => {
       if (filter === 'all') return true
       if (filter === 'active') return !todo.className
@@ -95,12 +109,18 @@ export default class ToDoApp extends React.Component {
     ).length
     return (
       <section className="todoapp">
-        <Header addItem={this.addItem} />
+        <Header
+          addItem={this.addItem}
+          setMin={this.setMin}
+          setSec={this.setSec}
+        />
         <TodoList
           todos={filteredData}
           onDeleted={this.deleteItem}
           onEditItem={this.onEditItem}
           onToggleDescription={this.handleDescriptionToggle}
+          min={min}
+          sec={sec}
         />
         <Footer
           todoCount={todoCount}

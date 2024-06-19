@@ -25,7 +25,11 @@ button::-moz-focus-inner {
 }
 
 body {
-  font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font:
+    14px 'Helvetica Neue',
+    Helvetica,
+    Arial,
+    sans-serif;
   line-height: 1.4em;
   background: #f5f5f5;
   color: #111111;
@@ -49,8 +53,9 @@ body {
   background: #fff;
   margin: 130px 0 40px 0;
   position: relative;
-  box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2),
-  0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 2px 4px 0 rgba(0, 0, 0, 0.2),
+    0 25px 50px 0 rgba(0, 0, 0, 0.1);
 }
 
 .todoapp input::-webkit-input-placeholder {
@@ -108,11 +113,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.new-todo, .new-todo-form .new-todo-form__timer {
+.new-todo,
+.new-todo-form .new-todo-form__timer {
   padding: 16px 16px 16px 60px;
   border: none;
   background: rgba(0, 0, 0, 0.003);
-  box-shadow: inset 0 -2px 1px rgba(0,0,0,0.03);
+  box-shadow: inset 0 -2px 1px rgba(0, 0, 0, 0.03);
 }
 
 .new-todo {
@@ -121,7 +127,7 @@ body {
 
 .new-todo-form .new-todo-form__timer {
   width: 15%;
-  padding-left: 16px;
+  padding-left: 2px;
 }
 
 .main {
@@ -188,10 +194,6 @@ body {
   width: calc(100% - 43px);
   padding: 12px 16px;
   margin: 0 0 0 43px;
-}
-
-.todo-list li.editing .view {
-  display: none;
 }
 
 .todo-list li .toggle {
@@ -342,11 +344,12 @@ body {
   left: 0;
   height: 50px;
   overflow: hidden;
-  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2),
-  0 8px 0 -3px #f6f6f6,
-  0 9px 1px -3px rgba(0, 0, 0, 0.2),
-  0 16px 0 -6px #f6f6f6,
-  0 17px 2px -6px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2),
+    0 8px 0 -3px #f6f6f6,
+    0 9px 1px -3px rgba(0, 0, 0, 0.2),
+    0 16px 0 -6px #f6f6f6,
+    0 17px 2px -6px rgba(0, 0, 0, 0.2);
 }
 
 .todo-count {
@@ -430,7 +433,7 @@ html .clear-completed:active {
 	Hack to remove background from Mobile Safari.
 	Can't use it globally since it destroys checkboxes in Firefox
 */
-@media screen and (-webkit-min-device-pixel-ratio:0) {
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
   .toggle-all,
   .todo-list li .toggle {
     background: none;
@@ -450,10 +453,10 @@ html .clear-completed:active {
     bottom: 10px;
   }
 }
-.created{
+.created {
   color: gray;
   font-size: 14px;
 }
-.task-time{
+.task-time {
   margin-left: 7px;
 }
