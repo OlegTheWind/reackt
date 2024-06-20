@@ -18,7 +18,6 @@ function ListComponent({
   const [editText, setEditedText] = useState(label)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [timerValue, setTimerValue] = useState(() => {
-    // Восстанавливаем значение таймера из localStorage при переходе на вкладку "Completed"
     if (currentTab === 'Completed') {
       const savedTimer = localStorage.getItem(`timer-${id}`)
       return savedTimer ? parseInt(savedTimer, 10) : min * 60 + sec
@@ -30,7 +29,6 @@ function ListComponent({
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    // Сохраняем значение таймера в localStorage только при переходе на вкладку "Completed"
     if (currentTab === 'Completed') {
       localStorage.setItem(`timer-${id}`, timerValue.toString())
     }
