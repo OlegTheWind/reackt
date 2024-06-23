@@ -52,6 +52,7 @@ export default class Header extends React.Component {
           placeholder="Min"
           value={min}
           onChange={this.handleInputMin}
+          onKeyDown={this.handleKey}
         />
         <input
           className="new-todo-form__timer"
@@ -59,6 +60,7 @@ export default class Header extends React.Component {
           placeholder="Sec"
           value={sec}
           onChange={this.handleInputSec}
+          onKeyDown={this.handleKey}
         />
       </header>
     )

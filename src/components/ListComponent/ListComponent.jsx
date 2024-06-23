@@ -18,20 +18,17 @@ function ListComponent({
   const [editText, setEditedText] = useState(label)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
   const [timerValue, setTimerValue] = useState(() => {
-    if (currentTab === 'Completed') {
-      const savedTimer = localStorage.getItem(`timer-${id}`)
-      return savedTimer ? parseInt(savedTimer, 10) : min * 60 + sec
-    }
-    return min * 60 + sec
+    const savedTimer = localStorage.getItem(`timer-${id}`)
+    return savedTimer ? parseInt(savedTimer, 10) : min * 60 + sec
   })
+  const [isTabActive, setIsTabActive] = useState(false)
+  const [completedTime, setCompletedTime] = useState(0)
 
   const startTimeRef = useRef(null)
   const intervalRef = useRef(null)
 
   useEffect(() => {
-    if (currentTab === 'Completed') {
-      localStorage.setItem(`timer-${id}`, timerValue.toString())
-    }
+    clearInterval(intervalRef.current)
 
     if (isTimerRunning) {
       startTimeRef.current = Date.now()
@@ -49,11 +46,124 @@ function ListComponent({
           return newValue
         })
       }, 1000)
-    } else {
-      clearInterval(intervalRef.current)
     }
+
     return () => clearInterval(intervalRef.current)
-  }, [isTimerRunning, timerValue, id, currentTab])
+  }, [isTimerRunning])
+  const handleTabClose = () => {
+    const currentTime = Date.now()
+    localStorage.setItem(`lastTime-${id}`, currentTime.toString())
+  }
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', handleTabClose)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose)
+      handleTabClose()
+    }
+  }, [])
+
+  useEffect(
+    () => () => {
+      localStorage.setItem(`timer-${id}`, timerValue.toString())
+      localStorage.setItem(`isTimerRunning-${id}`, isTimerRunning.toString())
+      localStorage.setItem(`currentTab-${id}`, currentTab)
+    },
+    [timerValue, isTimerRunning, id, currentTab],
+  )
+
+  useEffect(() => {
+    let intervalId
+    if (currentTab === 'Completed' && isTimerRunning) {
+      intervalId = setInterval(() => {
+        setTimerValue((prevValue) => prevValue + 1)
+      }, 1000)
+    }
+
+    return () => clearInterval(intervalId)
+  }, [currentTab, isTimerRunning, timerValue])
+
+  useEffect(() => {
+    const lastTime = parseInt(localStorage.getItem(`lastTime-${id}`), 10)
+    const currentTime = Date.now()
+
+    if (lastTime) {
+      const timeSpent = (currentTime - lastTime) / 1000 // Время в секундах
+      setCompletedTime(timeSpent)
+    }
+
+    const savedTimer = parseInt(localStorage.getItem(`timer-${id}`), 10)
+    const savedIsTimerRunning =
+      localStorage.getItem(`isTimerRunning-${id}`) === 'true'
+    if (savedTimer && savedIsTimerRunning) {
+      const adjustedTimerValue = savedTimer - completedTime
+      setTimerValue(adjustedTimerValue > 0 ? adjustedTimerValue : 0)
+      setIsTimerRunning(true)
+    }
+  }, [id, completedTime])
+
+  useEffect(() => {
+    const savedTimer = localStorage.getItem(`timer-${id}`)
+    const savedIsTimerRunning =
+      localStorage.getItem(`isTimerRunning-${id}`) === 'true'
+    if (savedTimer && savedIsTimerRunning) {
+      setTimerValue(parseInt(savedTimer, 10))
+      setIsTimerRunning(true)
+    }
+
+    if (currentTab === 'Completed' && savedIsTimerRunning) {
+      const currentTime = Date.now()
+      const lastTime = parseInt(localStorage.getItem(`lastTime-${id}`), 10)
+      const timeSpent = (currentTime - lastTime) / 1000
+      setCompletedTime(timeSpent)
+    }
+  }, [id, currentTab])
+
+  const startTimer = () => {
+    clearInterval(intervalRef.current)
+
+    startTimeRef.current = Date.now()
+    intervalRef.current = setInterval(() => {
+      const elapsedTime = Math.floor((Date.now() - startTimeRef.current) / 1000)
+      setTimerValue((prevValue) => {
+        const newValue = prevValue - elapsedTime
+        if (newValue <= 0) {
+          clearInterval(intervalRef.current)
+          return 0
+        }
+        return newValue
+      })
+    }, 1000)
+  }
+
+  useEffect(() => {
+    if (currentTab === 'Completed') {
+      if (!isTimerRunning) {
+        startTimer()
+        setIsTabActive(true)
+      }
+    } else if (isTimerRunning) {
+      clearInterval(intervalRef.current)
+      setIsTimerRunning(false)
+      setCompletedTime((prevTime) => prevTime + timerValue)
+      setIsTabActive(false)
+    }
+  }, [currentTab])
+
+  useEffect(() => {
+    if (currentTab === 'Completed' && isTabActive) {
+      setCompletedTime((prevTime) => prevTime + timerValue)
+    }
+  }, [timerValue, currentTab, isTabActive])
+  function updateCompletedTime() {
+    if (isTimerRunning) {
+      setCompletedTime((prevTime) => prevTime - timerValue)
+    }
+  }
+  useEffect(() => {
+    updateCompletedTime()
+  }, [])
 
   function onLabelClick() {
     const newDoneState = !done
@@ -72,7 +182,7 @@ function ListComponent({
   function handleInputBlur() {
     setIsEditing(false)
     if (editText !== label) {
-      onEditItem(id, editText)
+      onEditItem(id, editText, min, sec)
     }
   }
 
@@ -80,21 +190,38 @@ function ListComponent({
     if (event.key === 'Enter') {
       setIsEditing(false)
       if (editText !== label) {
-        onEditItem(id, editText)
+        onEditItem(id, editText, min, sec)
       }
     }
   }
-
   function handlePlayClick() {
     setIsTimerRunning(true)
+    setIsTabActive(true)
   }
 
   function handlePauseClick() {
     setIsTimerRunning(false)
+    setIsTabActive(false)
   }
+
   function handleResetClick() {
-    setTimerValue(min * 60 + sec)
+    if (currentTab === 'Completed') {
+      setTimerValue(completedTime)
+    } else {
+      setTimerValue(min * 60 + sec)
+    }
     setIsTimerRunning(false)
+  }
+
+  useEffect(() => {
+    updateCompletedTime()
+  }, [])
+
+  function handleDelete() {
+    if (isTimerRunning) {
+      setCompletedTime((prevTime) => prevTime + timerValue)
+    }
+    onDeleted(id)
   }
 
   return (
@@ -117,6 +244,8 @@ function ListComponent({
               className="new-todo-form__timer"
               type="text"
               placeholder="Min"
+              onKeyDown={handleInputKeyDown}
+              onBlur={handleInputBlur}
               value={Math.floor(timerValue / 60)}
               onChange={(event) => {
                 setTimerValue(event.target.value * 60 + (timerValue % 60))
@@ -126,6 +255,8 @@ function ListComponent({
               className="new-todo-form__timer"
               type="text"
               placeholder="Sec"
+              onKeyDown={handleInputKeyDown}
+              onBlur={handleInputBlur}
               value={Math.floor(timerValue % 60)}
               onChange={(event) => {
                 setTimerValue(
@@ -141,29 +272,28 @@ function ListComponent({
             <label htmlFor="inputId">
               <span className={className}>{label}</span>
               <span className="description">
-                <label htmlFor="inputTime">
-                  <button
-                    type="button"
-                    className="icon icon-play"
-                    onClick={handlePlayClick}
-                    aria-label="button_play"
-                  />
-                  <button
-                    type="button"
-                    className="icon icon-pause"
-                    onClick={handlePauseClick}
-                    aria-label="button_pause"
-                  />
-                  <button
-                    type="button"
-                    className="icon icon-reset"
-                    onClick={handleResetClick}
-                    aria-label="button_reset"
-                  />
-                  <span className="task-time">
-                    {Math.floor(timerValue / 60)}:{timerValue % 60}
-                  </span>
-                </label>
+                <button
+                  type="button"
+                  className="icon icon-play"
+                  onClick={handlePlayClick}
+                  aria-label="button_play"
+                />
+                <button
+                  type="button"
+                  className="icon icon-pause"
+                  onClick={handlePauseClick}
+                  aria-label="button_pause"
+                />
+                <button
+                  type="button"
+                  className="icon icon-reset"
+                  onClick={handleResetClick}
+                  aria-label="button_reset"
+                />
+                <span className="task-time">
+                  {Math.floor((timerValue - completedTime) / 60)}:
+                  {Math.floor((timerValue - completedTime) % 60)}
+                </span>
               </span>
               <span className="created">{time}</span>
             </label>
@@ -179,7 +309,7 @@ function ListComponent({
           className="icon icon-destroy"
           type="button"
           aria-label="Удалить"
-          onClick={() => onDeleted(id)}
+          onClick={handleDelete}
         />
       </div>
     </li>
