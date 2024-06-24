@@ -13,10 +13,13 @@ function ListComponent({
   sec,
   currentTab,
 }) {
-  const [done, setDone] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditedText] = useState(label)
   const [isTimerRunning, setIsTimerRunning] = useState(false)
+  const [done, setDone] = useState(() => {
+  const saveDone = localStorage.getItem(`done-${id}`)
+    return saveDone ? JSON.parse(saveDone) : false
+  })
   const [timerValue, setTimerValue] = useState(() => {
     const savedTimer = localStorage.getItem(`timer-${id}`)
     return savedTimer ? parseInt(savedTimer, 10) : min * 60 + sec
@@ -63,6 +66,10 @@ function ListComponent({
       handleTabClose()
     }
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem(`done-${id}, JSON.stringify(done)`)
+  }, [done, id])
 
   useEffect(
     () => () => {
