@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 
 import './App.css'
 import NewTaskForm from './components/NewTaskForm/NewTaskForm'
-import TaskList from './components/TaskLIst/TaskList'
+import TaskList from './components/TaskList/TaskList'
 import Footer from './components/Footer/Footer'
 
 function App() {

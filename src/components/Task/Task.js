@@ -77,7 +77,7 @@ function Task({
               type="button"
               onClick={stopTimer}
             />
-            {`${Math.floor(timer / 60)}:${(timer % 60).toString().padStart(2, '0')}`}
+            <span className='task_time'>{`${Math.floor(timer / 60).toString().padStart(2, '0')}:${(timer % 60).toString().padStart(2, '0')}`}</span>
           </span>
           <span className="description">{createdTimeAgo}</span>
         </label>

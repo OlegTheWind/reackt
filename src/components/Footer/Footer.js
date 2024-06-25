@@ -12,7 +12,7 @@ function Footer({
 }) {
   return (
     <footer className="footer">
-      <span className="todo-count">{itemsLeft} item(s) left</span>
+      <span className="todo-count">{itemsLeft} item(s) </span>
       <TaskFilters onFilterChange={onFilterChange} filter={filter} />
       <button
         type="button"
