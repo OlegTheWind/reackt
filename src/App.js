@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 
+import {TimerContext} from './components/TaskList/TimerContext'
 import './App.css'
 import NewTaskForm from './components/NewTaskForm/NewTaskForm'
 import TaskList from './components/TaskList/TaskList'
@@ -84,29 +85,31 @@ function App() {
   const itemsLeft = data.filter((el) => !el.completed).length
 
   return (
-    <section className="todoapp">
-      <header className="header">
-        <h1>todos</h1>
-        <NewTaskForm addNewTodoItem={addNewTodoItem} />
-      </header>
+    <TimerContext.Provider >
+      <section className="todoapp">
+        <header className="header">
+          <h1>todos</h1>
+          <NewTaskForm addNewTodoItem={addNewTodoItem} />
+        </header>
 
-      <section className="main">
-        <TaskList
-          className="hidden"
-          data={data}
-          deleteItem={deleteItem}
-          onToggleDone={onToggleDone}
-          filter={filter}
-          onEdit={onEdit}
-        />
-        <Footer
-          itemsLeft={itemsLeft}
-          deleteAllCompleted={deleteAllCompleted}
-          onFilterChange={onFilterChange}
-          filter={filter}
-        />
+        <section className="main">
+          <TaskList
+            className="hidden"
+            data={data}
+            deleteItem={deleteItem}
+            onToggleDone={onToggleDone}
+            filter={filter}
+            onEdit={onEdit}
+          />
+          <Footer
+            itemsLeft={itemsLeft}
+            deleteAllCompleted={deleteAllCompleted}
+            onFilterChange={onFilterChange}
+            filter={filter}
+          />
+        </section>
       </section>
-    </section>
+    </TimerContext.Provider>
   )
 }
 

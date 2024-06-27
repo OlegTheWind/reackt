@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { formatDistanceToNow } from 'date-fns'
 import propTypes from 'prop-types'
 
 import Task from '../Task/Task'
+
 import './TaskList.css'
+import {TimerContext} from './TimerContext'
 
 export default function TaskList({ data = [], onEdit, deleteItem, onToggleDone, filter = 'all' }) {
-  const [timers, setTimers] = useState({})
+  const [timers, setTimers] = useState(TimerContext)
 
   const updateTimer = (taskId) => {
     setTimers((prevTimers) => {
       const currentTime = prevTimers[taskId].time
-      if (currentTime > 0) {
+      if (currentTime && currentTime > 0) {
         return {
           ...prevTimers,
           [taskId]: {
@@ -48,31 +50,30 @@ export default function TaskList({ data = [], onEdit, deleteItem, onToggleDone, 
     })
   }
 
+
   const stopTimer = (taskId) => {
     setTimers((prevTimers) => {
-      const newTimers = { ...prevTimers }
-      if (newTimers[taskId] && newTimers[taskId].intervalId) {
-        clearInterval(newTimers[taskId].intervalId)
-        newTimers[taskId].intervalId = null
+      if (prevTimers[taskId] && prevTimers[taskId].intervalId) {
+        clearInterval(prevTimers[taskId].intervalId)
+        return {
+          ...prevTimers,
+          [taskId]: {
+            ...prevTimers[taskId],
+            intervalId: null,
+          },
+        }
       }
-      return newTimers
+      return prevTimers
     })
   }
 
   const onEditTask = (id, description) => {
     onEdit(id, description)
+    stopTimer(id)
   }
 
-  const clearTimers = () => {
-    Object.values(timers).forEach((timer) => {
-      clearInterval(timer.intervalId)
-    })
-  }
-
-  useEffect(() => () => clearTimers(), [data])
 
   let filteredData = data
-
   if (filter === 'active') {
     filteredData = data.filter((item) => !item.completed)
   } else if (filter === 'completed') {
@@ -95,7 +96,10 @@ export default function TaskList({ data = [], onEdit, deleteItem, onToggleDone, 
         startTimer={() => startTimer(item.id)}
         stopTimer={() => stopTimer(item.id)}
         deleteItem={() => deleteItem(item.id)}
-        onToggleDone={() => onToggleDone(item.id)}
+        onToggleDone={() => {
+          onToggleDone(item.id)
+          stopTimer(item.id)
+        }}
         onEdit={(value) => onEditTask(item.id, value)}
         createdTimeAgo={createdTimeAgo}
       />
